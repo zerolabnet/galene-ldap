@@ -102,7 +102,7 @@ func contains(arr []string, val string) bool {
 }
 
 func makeToken(alg string, key interface{}, issuer, location, username, password string) (string, error) {
-	opUsers, err := readOpFromConfigFile("data")
+	opUsers, err := readOpFromConfigFile("/srv/app/data")
 	if err != nil {
 		return "", err
 	}
