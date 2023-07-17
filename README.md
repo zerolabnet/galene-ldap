@@ -9,7 +9,7 @@ docker run -d \
 --network host \
 --name galene-ldap \
 --restart=unless-stopped \
--v /data/galene-ldap:/srv/app/data \
+-v /data/galene-ldap/data:/srv/app/data \
 zerolabnet/galene-ldap:latest
 ```
 
