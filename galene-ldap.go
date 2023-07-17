@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"io/ioutil"
 
 	"github.com/go-ldap/ldap/v3"
 	"github.com/jech/cert"
@@ -55,6 +56,7 @@ type configuration struct {
 	LdapAuthDN             string                 `json:"ldapAuthDN"`
 	LdapAuthPassword       string                 `json:"ldapAuthPassword"`
 	LdapClientSideValidate bool                   `json:"ldapClientSideValidate"`
+	Op                     []string               `json:"op"`
 }
 
 var debug bool
@@ -308,4 +310,21 @@ func verify(ctx context.Context, user, password string) (bool, bool, error) {
 	case <-ctx.Done():
 		return false, false, ctx.Err()
 	}
+}
+
+func readOpFromConfigFile(dataDir string) ([]string, error) {
+	configFile := filepath.Join(dataDir, "galene-ldap.json")
+
+	f, err := ioutil.ReadFile(configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var config configuration
+	err = json.Unmarshal(f, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	return config.Op, nil
 }
