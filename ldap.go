@@ -41,7 +41,7 @@ func ldapVerify(conn *ldap.Conn, clientside bool, authDN, authPW, user, password
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0, 0, false,
-		fmt.Sprintf("(&(objectClass=posixAccount)(uid=%s))",
+		fmt.Sprintf("(&(Title=*)(sAMAccountName=%s))",
 			ldap.EscapeFilter(user)),
 		attrs,
 		nil,

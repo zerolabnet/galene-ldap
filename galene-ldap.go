@@ -45,7 +45,7 @@ func (s jsonSet) MarshalJSON() ([]byte, error) {
 }
 
 type configuration struct {
-	Groups                 jsonSet                `json:"groups"`
+	Groups                 jsonSet                `json:"groups-exception"`
 	PasswordFallback       bool                   `json:"passwordFallback"`
 	HttpAddress            string                 `json:"httpAddress"`
 	Insecure               bool                   `json:"insecure"`
@@ -207,8 +207,8 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	group := strings.TrimSuffix(strings.TrimPrefix(p, "/group/"), "/")
-	if !config.Groups[group] {
-		debugf("Group not found")
+	if config.Groups[group] {
+		debugf("This group cannot be accessed via LDAP")
 		fallback()
 		return
 	}
