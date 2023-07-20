@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"strings"
@@ -14,7 +15,13 @@ import (
 )
 
 func ldapConnect(server, authDN, authPW string) (*ldap.Conn, error) {
-	conn, err := ldap.DialURL(server)
+	// Create custom TLS configuration to skip certificate verification
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true,
+	}
+
+	// Create LDAP connection with custom TLS configuration
+	conn, err := ldap.DialURL(server, ldap.DialWithTLSConfig(tlsConfig))
 	if err != nil {
 		return nil, err
 	}
