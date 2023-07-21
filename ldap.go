@@ -51,7 +51,7 @@ func ldapConnect(server, authDN, authPW string) (*ldap.Conn, error) {
 	return conn, nil
 }
 
-func ldapVerify(conn *ldap.Conn, clientside bool, user, password string) (bool, bool, *ldap.Conn, error) {
+func ldapVerify(conn *ldap.Conn, clientside bool, authDN, authPW, user, password string) (bool, bool, error) {
 	attrs := []string{"dn"}
 	if clientside {
 		attrs = append(attrs, "userPassword")
@@ -66,12 +66,13 @@ func ldapVerify(conn *ldap.Conn, clientside bool, user, password string) (bool, 
 		attrs,
 		nil,
 	))
+
 	if err != nil {
-		return false, false, nil, err
+		return false, false, err
 	}
 
 	if len(sr.Entries) != 1 {
-		return false, false, nil, nil
+		return false, false, nil
 	}
 
 	dn := sr.Entries[0].DN
@@ -86,26 +87,32 @@ func ldapVerify(conn *ldap.Conn, clientside bool, user, password string) (bool, 
 		) {
 			valid = false
 		} else {
-			return false, false, nil, err
+			return false, false, err
 		}
 
-		err = conn.UnauthenticatedBind("")
+		if authDN != "" {
+			err = conn.Bind(config.LdapAuthDN, config.LdapAuthPassword)
+		} else {
+			err = conn.UnauthenticatedBind("")
+		}
 		if err != nil {
-			return false, false, nil, err
+			return false, false, err
 		}
 	} else {
 		pw := sr.Entries[0].GetAttributeValue("userPassword")
 		if !strings.HasPrefix(pw, "{CRYPT}$") {
-			return false, false, nil, errors.New("unsupported password format")
+			return false, false,
+				errors.New("unsupported password format")
 		}
 		hashed := strings.TrimPrefix(pw, "{CRYPT}")
 		if !crypt.IsHashSupported(hashed) {
-			return false, false, nil, errors.New("unsupported password format")
+			return false, false,
+				errors.New("unsupported password format")
 		}
 		crypter := crypt.NewFromHash(hashed)
 		err = crypter.Verify(hashed, []byte(password))
 		valid = err == nil
 	}
 
-	return true, valid, conn, nil
+	return true, valid, nil
 }

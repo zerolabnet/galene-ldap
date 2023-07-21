@@ -99,15 +99,6 @@ func main() {
 	verifyCh = make(chan verifyReq)
 	go verifier(verifyCh)
 
-	// Graceful shutdown
-	defer close(shutdownCh)
-	defer func() {
-		if conn != nil {
-			conn.Close()
-			conn = nil
-		}
-	}()
-
 	http.HandleFunc("/", httpHandler)
 
 	server := &http.Server{
@@ -268,52 +259,41 @@ type verifyReq struct {
 	ch             chan verifyResp
 }
 
-var shutdownCh = make(chan struct{})
-var conn *ldap.Conn
-
 func verifier(ch <-chan verifyReq) {
+	var conn *ldap.Conn
+	var err error
 	for {
-		select {
-		case req, ok := <-ch:
-			if !ok {
-				// Channel closed, terminate the goroutine
-				return
-			}
-			if conn == nil {
-				conn, err = ldapConnect(
-					config.LdapServer,
-					config.LdapAuthDN,
-					config.LdapAuthPassword,
-				)
-				if err != nil {
-					conn = nil
-					req.ch <- verifyResp{error: err}
-					close(req.ch)
-					continue
-				}
-			}
-			found, valid, err :=
-				ldapVerify(
-					conn, config.LdapClientSideValidate,
-					config.LdapAuthDN, config.LdapAuthPassword,
-					req.user, req.password)
+		req, ok := <-ch
+		if !ok {
+			return
+		}
+		if conn == nil {
+			conn, err = ldapConnect(
+				config.LdapServer,
+				config.LdapAuthDN,
+				config.LdapAuthPassword,
+			)
 			if err != nil {
-				conn.Close()
 				conn = nil
 				req.ch <- verifyResp{error: err}
 				close(req.ch)
 				continue
 			}
-			req.ch <- verifyResp{found: found, valid: valid}
-			close(req.ch)
-		case <-shutdownCh:
-			// Handle shutdown signal, close the connection and terminate goroutine
-			if conn != nil {
-				conn.Close()
-				conn = nil
-			}
-			return
 		}
+		found, valid, err :=
+			ldapVerify(
+				conn, config.LdapClientSideValidate,
+				config.LdapAuthDN, config.LdapAuthPassword,
+				req.user, req.password)
+		if err != nil {
+			conn.Close()
+			conn = nil
+			req.ch <- verifyResp{error: err}
+			close(req.ch)
+			continue
+		}
+		req.ch <- verifyResp{found: found, valid: valid}
+		close(req.ch)
 	}
 }
 
