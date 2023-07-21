@@ -224,8 +224,6 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err error
-
 	found, valid, err := verify(r.Context(), req.Username, req.Password)
 	if err != nil {
 		log.Printf("Verify: %v", err)
@@ -294,10 +292,11 @@ func verifier(ch <-chan verifyReq) {
 					continue
 				}
 			}
-			found, valid, err := ldapVerify( // Correct the number of returned values
-				conn, config.LdapClientSideValidate,
-				config.LdapAuthDN, config.LdapAuthPassword,
-				req.user, req.password)
+			found, valid, err :=
+				ldapVerify(
+					conn, config.LdapClientSideValidate,
+					config.LdapAuthDN, config.LdapAuthPassword,
+					req.user, req.password)
 			if err != nil {
 				conn.Close()
 				conn = nil
