@@ -91,7 +91,6 @@ func parseKey(key map[string]interface{}) (string, interface{}, error) {
 	}
 }
 
-// Вспомогательная функция для проверки наличия username в массиве opUsers
 func contains(arr []string, val string) bool {
 	for _, a := range arr {
 		if a == val {
@@ -102,7 +101,7 @@ func contains(arr []string, val string) bool {
 }
 
 func makeToken(alg string, key interface{}, issuer, location, username, password string) (string, error) {
-	opUsers, err := readOpFromConfigFile("/srv/app/data")
+	opUsers, err := readOpFromConfigFile("./data")
 	if err != nil {
 		return "", err
 	}
@@ -121,7 +120,6 @@ func makeToken(alg string, key interface{}, issuer, location, username, password
 	}
 
 	if contains(opUsers, username) {
-		// Пользователь содержится в массиве "op"
 		m["permissions"] = []string{"op", "present", "token"}
 	} else {
 		m["permissions"] = []string{"present", "token"}
