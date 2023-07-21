@@ -48,6 +48,13 @@ func ldapConnect(server, authDN, authPW string) (*ldap.Conn, error) {
 			return nil, err
 		}
 	}
+
+	// Connection closure processing
+	go func() {
+		<-conn.Done  // Reacts to closing a connection
+		conn.Close()
+	}()
+
 	return conn, nil
 }
 
