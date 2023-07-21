@@ -91,7 +91,21 @@ func parseKey(key map[string]interface{}) (string, interface{}, error) {
 	}
 }
 
+func contains(arr []string, val string) bool {
+	for _, a := range arr {
+		if a == val {
+			return true
+		}
+	}
+	return false
+}
+
 func makeToken(alg string, key interface{}, issuer, location, username, password string) (string, error) {
+	opUsers, err := readOpFromConfigFile("./data")
+	if err != nil {
+		return "", err
+	}
+
 	now := time.Now()
 
 	m := make(map[string]interface{})
@@ -104,7 +118,13 @@ func makeToken(alg string, key interface{}, issuer, location, username, password
 	if username != "" {
 		m["sub"] = username
 	}
-	m["permissions"] = []string{"present", "token"}
+
+	if contains(opUsers, username) {
+		m["permissions"] = []string{"op", "present", "token"}
+	} else {
+		m["permissions"] = []string{"present", "token"}
+	}
+
 	m["iat"] = now.Add(-time.Second).Unix()
 	m["exp"] = now.Add(30 * time.Second).Unix()
 

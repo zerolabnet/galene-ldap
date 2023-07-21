@@ -7,5 +7,6 @@
     "ldapAuthPassword": "secret_pwd",
     "passwordFallback": true,
     "key": {"alg":"HS256","k":"xxx","key_ops":["sign","verify"],"kty":"oct"},
-    "groups-exception": [""]
+    "groups-exception": [""],
+    "op": ["username1", "username2"]
 }
