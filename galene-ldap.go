@@ -304,7 +304,7 @@ func verifier(ch <-chan verifyReq) {
 				close(req.ch)
 				continue
 			}
-			req.ch <- verifyResp{found: found, valid: valid, error: nil} // Add the error explicitly
+			req.ch <- verifyResp{found: found, valid: valid}
 			close(req.ch)
 		case <-shutdownCh:
 			// Handle shutdown signal, close the connection and terminate goroutine
