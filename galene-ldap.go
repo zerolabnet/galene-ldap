@@ -247,6 +247,22 @@ func httpHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, token)
 }
 
+const maxRetryAttempts = 3
+
+func ldapConnectWithRetry(server, authDN, authPW string) (*ldap.Conn, error) {
+	var conn *ldap.Conn
+	var err error
+	for attempt := 1; attempt <= maxRetryAttempts; attempt++ {
+		conn, err = ldapConnect(server, authDN, authPW)
+		if err == nil {
+			return conn, nil
+		}
+		log.Printf("Attempt %d: LDAP connection failed with error: %v\n", attempt, err)
+		time.Sleep(5 * time.Second) // Wait for a few seconds before retrying
+	}
+	return nil, err
+}
+
 type verifyResp struct {
 	found, valid bool
 	error        error
@@ -266,7 +282,7 @@ func verifier(ch <-chan verifyReq) {
 			return
 		}
 		if conn == nil {
-			conn, err = ldapConnect(
+			conn, err = ldapConnectWithRetry(
 				config.LdapServer,
 				config.LdapAuthDN,
 				config.LdapAuthPassword,
