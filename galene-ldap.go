@@ -269,7 +269,7 @@ func verifier(ch <-chan verifyReq) {
 		if !ok {
 			return
 		}
-		if conn == nil || conn.IsClosing() {
+		if conn == nil {
 			conn, err = ldapConnect(
 				config.LdapServer,
 				config.LdapAuthDN,
