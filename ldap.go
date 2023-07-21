@@ -20,16 +20,29 @@ func ldapConnect(server, authDN, authPW string) (*ldap.Conn, error) {
 		InsecureSkipVerify: true,
 	}
 
-	// Create LDAP connection with custom TLS configuration
-	conn, err := ldap.DialURL(server, ldap.DialWithTLSConfig(tlsConfig))
-	if err != nil {
-		return nil, err
+	var conn *ldap.Conn
+	var err error
+
+	// Retry connection
+	backoffTime := time.Second * 1
+	maxBackoffTime := time.Second * 30
+	for {
+		// Create LDAP connection with custom TLS configuration
+		conn, err = ldap.DialURL(server, ldap.DialWithTLSConfig(tlsConfig))
+		if err != nil {
+			if backoffTime < maxBackoffTime {
+				backoffTime *= 2
+			}
+   	   		time.Sleep(backoffTime)
+			continue
+		}
+		break
 	}
 
-	conn.SetTimeout(30 * time.Second)
+	conn.SetTimeout(maxBackoffTime)
 
 	if authDN != "" {
-		err = conn.Bind(authDN, authPW)
+		err := conn.Bind(authDN, authPW)
 		if err != nil {
 			conn.Close()
 			return nil, err
