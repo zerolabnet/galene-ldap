@@ -48,6 +48,13 @@ func ldapConnect(server, authDN, authPW string) (*ldap.Conn, error) {
 			return nil, err
 		}
 	}
+
+	// Connection closure processing
+	go func() {
+		<-conn.Done  // Reacts to closing a connection
+		conn.Close()
+	}()
+
 	return conn, nil
 }
 
@@ -70,7 +77,6 @@ func ldapVerify(conn *ldap.Conn, clientside bool, authDN, authPW, user, password
 	if err != nil {
 		return false, false, err
 	}
-	defer conn.Close() // Close the connection here in case of any errors below.
 
 	if len(sr.Entries) != 1 {
 		return false, false, nil
