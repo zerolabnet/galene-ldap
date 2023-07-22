@@ -281,10 +281,10 @@ func verifier(ch <-chan verifyReq) {
 				close(req.ch)
 				continue
 			}
-		}
 			justConnected = true
 		} else {
 			justConnected = false
+		}
 		found, valid, err :=
 			ldapVerify(
 				conn, config.LdapClientSideValidate,
