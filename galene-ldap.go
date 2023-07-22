@@ -269,6 +269,7 @@ func verifier(ch <-chan verifyReq) {
 		if !ok {
 			return
 		}
+	connectAgain:
 		if conn == nil {
 			conn, err = ldapConnect(
 				config.LdapServer,
@@ -296,8 +297,7 @@ func verifier(ch <-chan verifyReq) {
 			var lerr *ldap.Error
 			if !justConnected && errors.As(err, &lerr) &&
 				lerr.ResultCode == ldap.ErrorNetwork {
-				// try again with a fresh connection
-				continue
+				goto connectAgain
 			}
 			req.ch <- verifyResp{error: err}
 			close(req.ch)
