@@ -8,5 +8,8 @@
     "passwordFallback": true,
     "key": {"alg":"HS256","k":"xxx","key_ops":["sign","verify"],"kty":"oct"},
     "groups-exception": [""],
-    "op": ["username1", "username2"]
+    "op": [
+        {"group": "groupname1", "username": ["username1","username2"]},
+        {"group": "groupname2", "username": ["username1","username2"]}
+    ]
 }

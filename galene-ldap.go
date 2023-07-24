@@ -46,6 +46,11 @@ func (s jsonSet) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
+type UserGroup struct {
+	Group    string   `json:"group"`
+	Username []string `json:"username"`
+}
+
 type configuration struct {
 	Groups                 jsonSet                `json:"groups-exception"`
 	PasswordFallback       bool                   `json:"passwordFallback"`
@@ -57,7 +62,7 @@ type configuration struct {
 	LdapAuthDN             string                 `json:"ldapAuthDN"`
 	LdapAuthPassword       string                 `json:"ldapAuthPassword"`
 	LdapClientSideValidate bool                   `json:"ldapClientSideValidate"`
-	Op                     []string               `json:"op"`
+	Op                     []UserGroup            `json:"op"`
 }
 
 var debug bool
@@ -323,7 +328,7 @@ func verify(ctx context.Context, user, password string) (bool, bool, error) {
 	}
 }
 
-func readOpFromConfigFile(dataDir string) ([]string, error) {
+func readOpFromConfigFile(dataDir string) ([]UserGroup, error) {
 	configFile := filepath.Join(dataDir, "galene-ldap.json")
 
 	f, err := ioutil.ReadFile(configFile)

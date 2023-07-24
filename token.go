@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math/big"
 	"time"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -91,17 +92,19 @@ func parseKey(key map[string]interface{}) (string, interface{}, error) {
 	}
 }
 
-func contains(arr []string, val string) bool {
-	for _, a := range arr {
-		if a == val {
-			return true
-		}
-	}
-	return false
-}
-
 func makeToken(alg string, key interface{}, issuer, location, username, password string) (string, error) {
-	opUsers, err := readOpFromConfigFile("./data")
+    debugf("User: %v | Attempting to join the group: %v", username, location)
+
+    startIndex := strings.Index(location, "/group/")
+    if startIndex == -1 {
+        return "", errors.New("invalid location format")
+    }
+    group := location[startIndex + len("/group/"):]
+    if last := len(group) - 1; last >= 0 && group[last] == '/' {
+        group = group[:last]
+    }
+
+	opUserGroups, err := readOpFromConfigFile("./data")
 	if err != nil {
 		return "", err
 	}
@@ -119,10 +122,17 @@ func makeToken(alg string, key interface{}, issuer, location, username, password
 		m["sub"] = username
 	}
 
-	if contains(opUsers, username) {
-		m["permissions"] = []string{"op", "present", "token"}
-	} else {
-		m["permissions"] = []string{"present", "token"}
+	m["permissions"] = []string{"present", "token"}
+
+	for _, userGroup := range opUserGroups {
+		if userGroup.Group == group {
+			for _, user := range userGroup.Username {
+				if user == username {
+					m["permissions"] = []string{"op", "present", "token"}
+					break
+				}
+			}
+		}
 	}
 
 	m["iat"] = now.Add(-time.Second).Unix()
