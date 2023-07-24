@@ -93,16 +93,16 @@ func parseKey(key map[string]interface{}) (string, interface{}, error) {
 }
 
 func makeToken(alg string, key interface{}, issuer, location, username, password string) (string, error) {
-    debugf("User: %v | Attempting to join the group: %v", username, location)
+	debugf("User: %v | Attempting to join the group: %v", username, location)
 
-    startIndex := strings.Index(location, "/group/")
-    if startIndex == -1 {
-        return "", errors.New("invalid location format")
-    }
-    group := location[startIndex + len("/group/"):]
-    if last := len(group) - 1; last >= 0 && group[last] == '/' {
-        group = group[:last]
-    }
+	startIndex := strings.Index(location, "/group/")
+	if startIndex == -1 {
+		return "", errors.New("invalid location format")
+	}
+	group := location[startIndex + len("/group/"):]
+	if last := len(group) - 1; last >= 0 && group[last] == '/' {
+		group = group[:last]
+	}
 
 	opUserGroups, err := readOpFromConfigFile("./data")
 	if err != nil {
