@@ -113,7 +113,7 @@ func makeToken(alg string, key interface{}, issuer, location, username, password
 		group = group[:last]
 	}
 
-	opUserGroups, err := readOpFromConfigFile("./data")
+	opUserGroups, err := readOpFromConfigFile("data")
 	if err != nil {
 		return "", err
 	}
