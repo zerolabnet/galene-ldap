@@ -131,13 +131,13 @@ func makeToken(alg string, key interface{}, issuer, location, username, password
 		m["sub"] = username
 	}
 
-	m["permissions"] = []string{"present", "token"}
+	m["permissions"] = []string{"present", "message", "token"}
 
 	for _, userGroup := range opUserGroups {
 		if userGroup.Group == group {
 			for _, user := range userGroup.Username {
 				if user == username {
-					m["permissions"] = []string{"op", "present", "token"}
+					m["permissions"] = []string{"op", "present", "message", "token"}
 					break
 				}
 			}
